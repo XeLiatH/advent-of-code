@@ -8,7 +8,12 @@ if ($handle === false) {
 $zeros = 0;
 $dial = 50;
 
-while (($line = fgets($handle)) !== false) {
+while (($line = fgets($handle)) !== false)
+{
+    if (!trim($line)) {
+        continue;
+    }
+
     $matched = preg_match('/([R|L])(\d+)/i', $line, $matches) !== false;
     if (!$matched) {
         continue;
@@ -19,20 +24,24 @@ while (($line = fgets($handle)) !== false) {
     $direction = strtolower($matches[1]);
     assert($direction === 'l' || $direction === 'r');
 
-    $amount = (int)$matches[2];
+    $rotateBy = (int)$matches[2];
 
-    if ($direction === 'l') {
-        $dial -= $amount;
-    }
+    // using brute force, surely there is a better way
+    for ($i = 0; $i < $rotateBy; $i++)
+    {
+        if ($direction === 'l') {
+            $dial -= 1;
+        }
 
-    if ($direction === 'r') {
-        $dial += $amount;
-    }
+        if ($direction === 'r') {
+            $dial += 1;
+        }
 
-    $dial = $dial % 100;
+        $dial = $dial % 100;
 
-    if ($dial === 0) {
-        $zeros++;
+        if ($dial == 0) {
+            $zeros++;
+        }
     }
 }
 
