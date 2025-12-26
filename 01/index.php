@@ -1,5 +1,7 @@
 <?php
 
+require __DIR__.'/../vendor/autoload.php';
+
 $handle = fopen('input.txt', 'r');
 if ($handle === false) {
     throw new \Exception("Cannot read input.txt file!");

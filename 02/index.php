@@ -1,43 +1,134 @@
 <?php
 
-$input = '96952600-96977512,6599102-6745632,32748217-32835067,561562-594935,3434310838-3434398545,150-257,864469-909426,677627997-677711085,85-120,2-19,3081-5416,34-77,35837999-36004545,598895-706186,491462157-491543875,5568703-5723454,6262530705-6262670240,8849400-8930122,385535-477512,730193-852501,577-1317,69628781-69809331,2271285646-2271342060,282-487,1716-2824,967913879-967997665,22-33,5722-11418,162057-325173,6666660033-6666677850,67640049-67720478,355185-381658,101543-146174,24562-55394,59942-93946,967864-1031782';
+require __DIR__ . '/../vendor/autoload.php';
 
-$ranges = explode(',', $input);
-
-$sum = 0;
-
-foreach ($ranges as $range) {
-    [$min, $max] = explode('-', $range);
-
-    for ($i = intval($min); $i <= intval($max); $i++) {
-        if (is_invalid($i)) {
-            $sum += $i;
-        }
-    }
-}
-
-echo(sprintf("Sum is: %d \r\n", $sum));
-
-exit(0);
-
-function is_invalid(int $num): bool
+class Id
 {
-    $str = (string) $num;
-    $size = strlen($str);
+    private int $value;
 
-    if ($size % 2 === 1) {
-        return false;
+    public function __construct(int $value)
+    {
+        $this->value = $value;
     }
 
-    $mid = intval($size / 2);
-    $left = substr($str, 0, $mid);
-    $right = substr($str, $mid);
+    public function getValue(): int
+    {
+        return $this->value;
+    }
 
-    for ($i = 0; $i < $mid; ++$i) {
-        if (substr($left, $i, 1) !== substr($right, $i, 1)) {
+    public function isInvalidPart1(): bool
+    {
+        $str = (string) $this->value;
+        $size = strlen($str);
+
+        $isLengthOdd = $size % 2 === 1;
+
+        if ($isLengthOdd) {
             return false;
         }
+
+        $mid = intval($size / 2);
+        $left = substr($str, 0, $mid);
+        $right = substr($str, $mid);
+
+        for ($i = 0; $i < $mid; ++$i) {
+            if (substr($left, $i, 1) !== substr($right, $i, 1)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
+class IdRange implements IteratorAggregate
+{
+    public const SEPARATOR = '-';
+
+    public function __construct(
+        public readonly int $min,
+        public readonly int $max,
+    ) {
     }
 
-    return true;
+    public static function fromString(string $range): self
+    {
+        assert(str_contains($range, self::SEPARATOR) === true);
+
+        [$min, $max] = explode(self::SEPARATOR, $range);
+
+        assert(is_numeric($min), 'Min is not a number');
+        assert(is_numeric($max), 'Max is not a number');
+
+        return new self(
+            min: (int) $min,
+            max: (int) $max,
+        );
+    }
+
+    public function inRange(Id $id): bool
+    {
+        return $id->getValue() >= $this->min && $id->getValue() <= $this->max;
+    }
+
+    /**
+     * @return \ArrayIterator<Id>
+     */
+    public function getIterator(): \Traversable
+    {
+        return new \ArrayIterator(
+            array_map(
+                static fn(int $value): Id => new Id($value),
+                range($this->min, $this->max),
+            )
+        );
+    }
 }
+
+$input = file_get_contents('input.txt');
+assert($input !== false, 'Could not load input file');
+
+$strRanges = explode(',', $input);
+
+/** @var IdRange[] $ranges */
+$ranges = [];
+foreach ($strRanges as $rangeAsString) {
+    $ranges[] = IdRange::fromString($rangeAsString);
+}
+
+$sumPart1 = 0;
+foreach ($ranges as $range) {
+    foreach ($range as $id) {
+        /** @var Id $id */
+        if ($id->isInvalidPart1()) {
+            $sumPart1 += $id->getValue();
+        }
+    }
+}
+
+echo (sprintf("The part1 sum of invalid ids is: %d \r\n", $sumPart1)); // 28146997880
+
+$sumPart2Items = [];
+
+for ($i = 1; $i <= 100_000; $i++) {
+    for ($repeat = 2; $repeat <= 11; $repeat++) {
+        $candidate = (int) str_repeat($i, $repeat);
+
+        if ($candidate > 10_000_000_000) {
+            break;
+        }
+
+        foreach ($ranges as $range) {
+            if ($range->inRange(new Id($candidate))) {
+                $sumPart2Items[$candidate] = true;
+                break;
+            }
+        }
+    }
+}
+
+$sumPart2 = array_sum(array_keys($sumPart2Items));
+
+echo (sprintf("The part2 sum of invalid ids is: %d \r\n", $sumPart2));
+
+exit(0);
