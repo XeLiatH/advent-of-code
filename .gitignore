@@ -1,2 +1,12 @@
 .DS_Store
 vendor/
+
+# Editor directories and files
+.vscode
+.cursor
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
