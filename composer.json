@@ -1,8 +1,18 @@
 {
-    "require-dev": {
-        "symfony/var-dumper": "^6.4"
+    "name": "xeliath/advent-of-code",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
     },
     "require": {
-        "symfony/console": "^6.4"
+        "php": "8.1.*",
+        "symfony/console": "^6.4",
+        "symfony/stopwatch": "^6.4"
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^6.4"
     }
 }
