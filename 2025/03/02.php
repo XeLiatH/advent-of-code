@@ -14,19 +14,14 @@ return new class () implements SolutionInterface {
             $start = 0;
 
             for ($i = 11; $i >= 0; $i--) {
-
-                if ($i > 0) {
-                    $window = substr($bank, $start, strlen($bank) - $start - $i);
-                } else {
-                    $window = substr($bank, $start);
-                }
+                $window = substr($bank, $start, strlen($bank) - $start - $i);
 
                 $batteries = str_split($window);
-                $value = max($batteries);
+                $battery = max($batteries);
 
-                $start = strpos($bank, $value, $start) + 1;
+                $start = strpos($bank, $battery, $start) + 1;
 
-                $joltage .= $value;
+                $joltage .= $battery;
             }
 
             $totalJoltage += (int) $joltage;
